@@ -15,7 +15,7 @@ public class ParseAndAddCalls {
         this.calls = new LinkedHashSet<Call>();
     }
 
-    public void addCallsFromFile() {
+    public int addCallsFromFile() {
 //        File file = new File("C:\\drivers\\1.txt");
         File file = new File("C:\\drivers\\integrationservice_2015_02_04_0097.log");
         File file2 = new File("C:\\drivers\\test.txt");
@@ -32,7 +32,7 @@ public class ParseAndAddCalls {
             fileReader.read(buffer);
 //            System.out.println(new String(buffer));
 
-            Pattern pattern1 = Pattern.compile("[a-z0-9-@.]{32}[@.0-9]{13}");
+            Pattern pattern1 = Pattern.compile("[a-z0-9-]{32}\\@(?:\\d{1,3}\\.){3}\\d{1,3}");
             Matcher matcher = pattern1.matcher(new String(buffer));
             while (matcher.find()) {
 //                System.out.println(matcher.group());
@@ -49,5 +49,7 @@ public class ParseAndAddCalls {
             }
         }
         System.out.println(System.currentTimeMillis() - before);
+//        System.out.println(calls.size());
+        return calls.size();
     }
 }
