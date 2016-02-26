@@ -47,4 +47,12 @@ public class Call {
     public int hashCode() {
         return callId.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "Call{" +
+                "time=" + time +
+                ", callId='" + callId + '\'' +
+                '}';
+    }
 }
