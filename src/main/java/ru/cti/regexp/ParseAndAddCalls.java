@@ -29,21 +29,20 @@ public class ParseAndAddCalls {
             FileReader fileReader = null;
             try {
                 fileReader = new FileReader(file);
-                char[] buffer = new char[(int) file.length()];
+//                char[] buffer = new char[(int) file.length()];
                 // считаем файл полностью
-                fileReader.read(buffer);
-                // разбиваем на массив строк по каждой строчке файла
-                String[] strings = new String(buffer).split("\\r\\n");
-                /* раскомментить для меньшего потребления памяти
-                buffer = null;
-                System.gc();*/
-                // если строчка является SIP INVITE'ом, то проверить регэкспом и при совпадении добавить регэксп в set
-                for (int i = 0; i < strings.length; i++) {
-                    if (strings[i].contains("Request<INVITE>")) {
-                        Pattern pattern = Pattern.compile("[a-f0-9-]{30,40}\\@(?:\\d{1,3}\\.){3}\\d{1,3}");
-                        Matcher matcher = pattern.matcher(strings[i].substring(200));
-                        if (matcher.find()) {
-                            calls.add(new Call(System.currentTimeMillis(), matcher.group()));
+//                fileReader.read(buffer);
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+                String buffer;
+                // todo итератор?
+                while ((buffer = bufferedReader.readLine()) != null) {
+                    if (buffer.length() > 200) {
+                        if (buffer.contains("Request<INVITE>")) {
+                            Pattern pattern = Pattern.compile("[a-f0-9-]{30,40}\\@(?:\\d{1,3}\\.){3}\\d{1,3}");
+                            Matcher matcher = pattern.matcher(buffer.substring(200));
+                            if (matcher.find()) {
+                                calls.add(new Call(System.currentTimeMillis(), matcher.group()));
+                            }
                         }
                     }
                 }
