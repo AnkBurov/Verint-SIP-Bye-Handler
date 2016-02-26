@@ -16,29 +16,26 @@ public class ParseAndAddCalls {
     }
 
     public int addCallsFromFile() {
-//        File file = new File("C:\\drivers\\1.txt");
         File file = new File("C:\\drivers\\integrationservice_2015_02_04_0097.log");
-        File file2 = new File("C:\\drivers\\test.txt");
-        FileWriter fileWriter = null;
         FileReader fileReader = null;
-
-//        Date date = new Date(System.currentTimeMillis());
         long before = System.currentTimeMillis();
-//        System.out.println(before);
         try {
             fileReader = new FileReader(file);
             char[] buffer = new char[(int) file.length()];
             // считаем файл полностью
             fileReader.read(buffer);
-//            System.out.println(new String(buffer));
-
-            Pattern pattern1 = Pattern.compile("[a-z0-9-]{32}\\@(?:\\d{1,3}\\.){3}\\d{1,3}");
-            Matcher matcher = pattern1.matcher(new String(buffer));
-            while (matcher.find()) {
-//                System.out.println(matcher.group());
-                calls.add(new Call(System.currentTimeMillis(), matcher.group()));
+            // разбиваем на массив строк по каждой строчке файла
+            String[] strings = new String(buffer).split("\\r\\n");
+            // если строчка является SIP INVITE'ом, то проверить регэкспом и при совпадении добавить регэксп в set
+            for (int i = 0; i < strings.length; i++) {
+                if (strings[i].contains("Request<INVITE>")) {
+                    Pattern pattern = Pattern.compile("[a-z0-9-]{32}\\@(?:\\d{1,3}\\.){3}\\d{1,3}");
+                    Matcher matcher = pattern.matcher(strings[i].substring(200));
+                    if (matcher.find()) {
+                        calls.add(new Call(System.currentTimeMillis(), matcher.group()));
+                    }
+                }
             }
-            fileReader.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -49,7 +46,6 @@ public class ParseAndAddCalls {
             }
         }
         System.out.println(System.currentTimeMillis() - before);
-//        System.out.println(calls.size());
         return calls.size();
     }
 }
