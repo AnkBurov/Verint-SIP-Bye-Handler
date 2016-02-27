@@ -30,6 +30,11 @@ public class SipSenderManager {
             Call next = iterator.next();
             try {
                 sipLayer.sendMessage(sipDestinationAddress, next.getCallId(), "");
+                try {
+                    Thread.currentThread().sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 iterator.remove();
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -39,5 +44,6 @@ public class SipSenderManager {
                 e.printStackTrace();
             }
         }
+        System.exit(0);
     }
 }
