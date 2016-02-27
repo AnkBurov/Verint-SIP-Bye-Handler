@@ -17,6 +17,10 @@ public class ParseAndAddCalls {
         this.calls = new LinkedHashSet<Call>();
     }
 
+    public Set<Call> getCalls() {
+        return calls;
+    }
+
     public int addCallsFromFiles() {
         /*директория для парсинга логов*/
         File dir = new File("C:\\drivers\\");
