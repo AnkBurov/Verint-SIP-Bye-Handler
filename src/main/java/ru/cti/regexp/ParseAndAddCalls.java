@@ -76,9 +76,6 @@ public class ParseAndAddCalls {
 //        System.out.println(calls.size());
 //        return calls.size();
         System.out.println(callHashMap.size());
-        for (Map.Entry<String, Long> stringLongEntry : callHashMap.entrySet()) {
-            System.out.println(stringLongEntry.getKey() + " " + stringLongEntry.getValue());
-        }
         return callHashMap.size();
     }
 }
