@@ -1,5 +1,10 @@
 package ru.cti.regexp;
 
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,10 +16,19 @@ import java.util.regex.Pattern;
  * Created by e.karpov on 25.02.2016.
  */
 public class ParseAndAddCalls {
+    DB callDB;
+    HTreeMap<String, Long> callHashMap;
+
+    @Deprecated
     Set<Call> calls;
 
     public ParseAndAddCalls() {
         this.calls = new LinkedHashSet<Call>();
+        callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
+        callHashMap = callDB.hashMapCreate("callsHashMap")
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.LONG)
+                .makeOrGet();
     }
 
     public Set<Call> getCalls() {
@@ -42,7 +56,8 @@ public class ParseAndAddCalls {
                         if (buffer.contains("Request<INVITE>")) {
                             Matcher matcher = pattern.matcher(buffer.substring(200));
                             if (matcher.find()) {
-                                calls.add(new Call(System.currentTimeMillis(), matcher.group()));
+//                                calls.add(new Call(System.currentTimeMillis(), matcher.group()));
+                                callHashMap.putIfAbsent(matcher.group(), System.currentTimeMillis());
                             }
                         }
                     }
@@ -58,7 +73,9 @@ public class ParseAndAddCalls {
             }
         }
         System.out.println(System.currentTimeMillis() - before);
-        System.out.println(calls.size());
-        return calls.size();
+//        System.out.println(calls.size());
+//        return calls.size();
+        System.out.println(callHashMap.size());
+        return callHashMap.size();
     }
 }
