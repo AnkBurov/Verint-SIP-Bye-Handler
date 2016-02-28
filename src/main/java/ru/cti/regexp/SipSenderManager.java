@@ -26,24 +26,24 @@ public class SipSenderManager {
 
     //todo пока void, потом переделать в более тестируемое
     public void sendByeMessages() {
-        for (Iterator<Call> iterator = calls.iterator(); iterator.hasNext(); ) {
-            Call next = iterator.next();
-            try {
-                sipLayer.sendMessage(sipDestinationAddress, next.getCallId(), "");
-                try {
-                    Thread.currentThread().sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                iterator.remove();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            } catch (InvalidArgumentException e) {
-                e.printStackTrace();
-            } catch (SipException e) {
-                e.printStackTrace();
-            }
-        }
-        System.exit(0);
+//        for (Iterator<Call> iterator = calls.iterator(); iterator.hasNext(); ) {
+//            Call next = iterator.next();
+//            try {
+//                sipLayer.sendMessage(sipDestinationAddress, next.getCallId(), "");
+//                try {
+//                    Thread.currentThread().sleep(1);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                iterator.remove();
+//            } catch (ParseException e) {
+//                e.printStackTrace();
+//            } catch (InvalidArgumentException e) {
+//                e.printStackTrace();
+//            } catch (SipException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        System.exit(0);
     }
 }

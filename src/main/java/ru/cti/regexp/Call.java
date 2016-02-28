@@ -3,6 +3,7 @@ package ru.cti.regexp;
 /**
  * Created by e.karpov on 25.02.2016.
  */
+@Deprecated
 public class Call {
     private long time;
     private String callId;

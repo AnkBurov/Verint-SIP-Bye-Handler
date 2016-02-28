@@ -2,6 +2,7 @@ package ru.cti.regexp;
 
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.stack.MessageProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -10,6 +11,7 @@ import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
+import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -33,14 +35,20 @@ public class SipLayer implements SipListener {
 
     private SipProvider sipProvider;
 
+    private String sipDestinationAddress;
+
+    @Autowired
+    ParseAndAddCalls parseAndAddCalls;
+
     /**
      * Here we initialize the SIP stack.
      */
-    private SipLayer(String username, String ip, int srcPort)
+    private SipLayer(String username, String ip, int srcPort, String sipDestinationAddress)
             throws PeerUnavailableException, TransportNotSupportedException,
             InvalidArgumentException, ObjectInUseException,
             TooManyListenersException {
         setUsername(username);
+        this.sipDestinationAddress = sipDestinationAddress;
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
@@ -76,7 +84,7 @@ public class SipLayer implements SipListener {
     /**
      * This method uses the SIP stack to send a message.
      */
-    public void sendMessage(String to, String callId, String message) throws ParseException,
+    public void sendMessage(String callId, String message) throws ParseException,
             InvalidArgumentException, SipException {
 
         SipURI from = addressFactory.createSipURI(getUsername(), getHost()
@@ -86,8 +94,9 @@ public class SipLayer implements SipListener {
         FromHeader fromHeader = headerFactory.createFromHeader(fromNameAddress,
                 "textclientv1.0");
 
-        String username = to.substring(to.indexOf(":") + 1, to.indexOf("@"));
-        String address = to.substring(to.indexOf("@") + 1);
+        String username = sipDestinationAddress.substring(sipDestinationAddress.indexOf(":") + 1,
+                sipDestinationAddress.indexOf("@"));
+        String address = sipDestinationAddress.substring(sipDestinationAddress.indexOf("@") + 1);
 
         SipURI toAddress = addressFactory.createSipURI(username, address);
         Address toNameAddress = addressFactory.createAddress(toAddress);
@@ -160,6 +169,19 @@ public class SipLayer implements SipListener {
         }
 
         messageProcessor.processError("Previous message not sent: " + status);*/
+
+        Response response = evt.getResponse();
+        int status = response.getStatusCode();
+        System.out.println(response.getHeader(CallID.CALL_ID).toString());
+//        parseAndAddCalls.removeClosedCall();
+
+
+//        if ((status >= 200) && (status < 300)) { //Success!
+//            messageProcessor.processInfo("--Sent");
+//            return;
+//        }
+//
+//        messageProcessor.processError("Previous message not sent: " + status);
     }
 
     /**
