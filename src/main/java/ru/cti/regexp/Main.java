@@ -26,7 +26,7 @@ public class Main {
             e.printStackTrace();
         }
         parseAndAddCalls.addCallsFromFiles();
-        SipSenderManager sipSenderManager = (SipSenderManager) context.getBean("sipSenderManager");
-        sipSenderManager.sendByeMessages();
+//        SipSenderManager sipSenderManager = (SipSenderManager) context.getBean("sipSenderManager");
+//        sipSenderManager.sendByeMessages();
     }
 }
