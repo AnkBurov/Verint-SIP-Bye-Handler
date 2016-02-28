@@ -20,12 +20,20 @@ public class Main {
         }
         ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
         ParseAndAddCalls parseAndAddCalls = (ParseAndAddCalls) context.getBean("parseAndAddCalls");
+        threadSleep(500);
+        parseAndAddCalls.addCallsFromFiles();
+        parseAndAddCalls.processWhichCallsNeedToBeEnded();
+        System.out.println(parseAndAddCalls.getCallHashMap().size());
+        threadSleep(500);
+        parseAndAddCalls.commitDbChangesAndCloseDb();
+        System.exit(0);
+    }
+
+    private static void threadSleep(int milliseconds) {
         try {
-            Thread.currentThread().sleep(500);
+            Thread.currentThread().sleep(milliseconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        parseAndAddCalls.addCallsFromFiles();
-        parseAndAddCalls.processWhichCallsNeedToBeEnded();
     }
 }

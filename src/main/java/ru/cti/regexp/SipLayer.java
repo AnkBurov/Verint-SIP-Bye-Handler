@@ -16,6 +16,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TooManyListenersException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SipLayer implements SipListener {
 
@@ -170,10 +172,13 @@ public class SipLayer implements SipListener {
 
         messageProcessor.processError("Previous message not sent: " + status);*/
 
+        // с помощью regexp вытаскиваем непосредственно call-id
         Response response = evt.getResponse();
         int status = response.getStatusCode();
-        System.out.println(response.getHeader(CallID.CALL_ID).toString());
-//        parseAndAddCalls.removeClosedCall();
+        Pattern pattern = Pattern.compile(ParseAndAddCalls.REGEXP);
+        Matcher matcher = pattern.matcher(response.getHeader(CallID.CALL_ID).toString());
+        matcher.find();
+        parseAndAddCalls.removeClosedCall(matcher.group());
 
 
 //        if ((status >= 200) && (status < 300)) { //Success!

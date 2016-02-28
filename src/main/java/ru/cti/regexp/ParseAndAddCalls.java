@@ -22,14 +22,12 @@ import java.util.regex.Pattern;
 public class ParseAndAddCalls {
     @Autowired
     private SipLayer sipLayer;
-    DB callDB;
+    private DB callDB;
     private HTreeMap<String, Long> callHashMap;
+    public static final String REGEXP = "[a-f0-9-]{30,40}\\@(?:\\d{1,3}\\.){3}\\d{1,3}";
 
-    @Deprecated
-    Set<Call> calls;
 
     public ParseAndAddCalls() {
-        this.calls = new LinkedHashSet<Call>();
         callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
                 .keySerializer(Serializer.STRING)
@@ -37,15 +35,15 @@ public class ParseAndAddCalls {
                 .makeOrGet();
     }
 
-    public Set<Call> getCalls() {
-        return calls;
+    public HTreeMap<String, Long> getCallHashMap() {
+        return callHashMap;
     }
 
     public int addCallsFromFiles() {
         /*директория для парсинга логов*/
         File dir = new File("C:\\drivers\\");
         File[] files = dir.listFiles((d, name) -> name.endsWith(".log"));
-        Pattern pattern = Pattern.compile("[a-f0-9-]{30,40}\\@(?:\\d{1,3}\\.){3}\\d{1,3}");
+        Pattern pattern = Pattern.compile(REGEXP);
         long before = System.currentTimeMillis();
         for (File file : files) {
             System.out.println(file.getAbsolutePath());
@@ -62,7 +60,6 @@ public class ParseAndAddCalls {
                         if (buffer.contains("Request<INVITE>")) {
                             Matcher matcher = pattern.matcher(buffer.substring(200));
                             if (matcher.find()) {
-//                                calls.add(new Call(System.currentTimeMillis(), matcher.group()));
                                 callHashMap.putIfAbsent(matcher.group(), System.currentTimeMillis());
                             }
                         }
@@ -86,12 +83,20 @@ public class ParseAndAddCalls {
         return callHashMap.size();
     }
 
-    public int processWhichCallsNeedToBeEnded() {
+    public void processWhichCallsNeedToBeEnded() {
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
-            if (System.currentTimeMillis() - call.getValue() > 10) {
-                //todo отправляем SIP BYE
+            // todo перенести в проперти таймаут завершения звонка
+            if (System.currentTimeMillis() - call.getValue() >= 0) {
+                // отправляем SIP BYE
                 try {
                     sipLayer.sendMessage(call.getKey(), "");
+                    // задержка нужна, чтобы не перезагрузить адаптер
+                    // в больших окружениях, полагаю, нужно ставить больше
+                    try {
+                        Thread.currentThread().sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 } catch (InvalidArgumentException e) {
@@ -101,16 +106,27 @@ public class ParseAndAddCalls {
                 }
             }
         }
-
-
-        
-        
-        
-        return 1;
     }
 
-    public long removeClosedCall(String callId) {
+    public boolean removeClosedCall(String callId) {
         //todo написать в логе removed
-        return callHashMap.remove(callId);
+        try {
+            callHashMap.remove(callId);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean commitDbChangesAndCloseDb() {
+        try {
+            callDB.commit();
+            callDB.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
