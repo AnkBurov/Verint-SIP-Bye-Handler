@@ -12,7 +12,12 @@ http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
 
     <context:component-scan base-package="ru.cti.regexp"/>
     <beans>
-        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndAddCalls"/>
-        <bean id="call" class="ru.cti.regexp.Call" scope="prototype"/>
+        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndAddCalls" scope="singleton"/>
+        <bean id="sipLayer" class="ru.cti.regexp.SipLayer">
+            <constructor-arg type="java.lang.String" value="VerintSIPByeHandler"/>
+            <constructor-arg type="java.lang.String" value="89.175.77.31"/>
+            <constructor-arg value="#{5085}"/>
+            <constructor-arg type="java.lang.String" value="sip:1016@172.16.33.186:5060"/>
+        </bean>
     </beans>
 </beans>
