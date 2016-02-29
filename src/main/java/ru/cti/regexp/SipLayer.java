@@ -180,6 +180,8 @@ public class SipLayer implements SipListener {
         matcher.find();
         parseAndAddCalls.removeClosedCall(matcher.group());
 
+        System.out.println(response.getHeader(CallID.CALL_ID).toString());
+
 
 //        if ((status >= 200) && (status < 300)) { //Success!
 //            messageProcessor.processInfo("--Sent");

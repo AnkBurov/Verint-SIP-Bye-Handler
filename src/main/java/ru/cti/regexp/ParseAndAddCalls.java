@@ -86,7 +86,7 @@ public class ParseAndAddCalls {
     public void processWhichCallsNeedToBeEnded() {
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
             // todo перенести в проперти таймаут завершения звонка
-            if (System.currentTimeMillis() - call.getValue() >= 0) {
+            if (System.currentTimeMillis() - call.getValue() >= 600000) {
                 // отправляем SIP BYE
                 try {
                     sipLayer.sendMessage(call.getKey(), "");

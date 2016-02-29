@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 
 public class Main {
 
+    // todo проверить synchronized хешмапа из ДБ
 
     // todo хуячить ip адрес будем руками, но пока командой автоматом
 
@@ -23,8 +24,8 @@ public class Main {
         threadSleep(500);
         parseAndAddCalls.addCallsFromFiles();
         parseAndAddCalls.processWhichCallsNeedToBeEnded();
+        threadSleep(5000);
         System.out.println(parseAndAddCalls.getCallHashMap().size());
-        threadSleep(500);
         parseAndAddCalls.commitDbChangesAndCloseDb();
         System.exit(0);
     }
