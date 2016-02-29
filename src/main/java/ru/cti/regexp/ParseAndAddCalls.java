@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -24,15 +22,27 @@ public class ParseAndAddCalls {
     private SipLayer sipLayer;
     private DB callDB;
     private HTreeMap<String, Long> callHashMap;
-    public static final String REGEXP = "[a-f0-9-]{30,40}\\@(?:\\d{1,3}\\.){3}\\d{1,3}";
+    private long callTerminationTimeout;
+    private static String regexp;
+    private String risLogsFolderPath;
+
+    // SipLayer использует переменную regexp
+    public static String getRegexp() {
+        return regexp;
+    }
 
 
-    public ParseAndAddCalls() {
+
+
+    public ParseAndAddCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout) {
         callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.LONG)
                 .makeOrGet();
+        ParseAndAddCalls.regexp = regexp; // заполнение статической переменной
+        this.risLogsFolderPath = risLogsFolderPath;
+        this.callTerminationTimeout = callTerminationTimeout * 60000;
     }
 
     public HTreeMap<String, Long> getCallHashMap() {
@@ -41,11 +51,11 @@ public class ParseAndAddCalls {
 
     public int addCallsFromFiles() {
         /*директория для парсинга логов*/
-        // todo сделать путь папки с логами как поле
-        // todo чтобы пароль принял - нужно сохранить пароль
-        File dir = new File("\\\\172.16.33.186\\integrationservice");
+        // чтобы пароль принял - нужно сохранить пароль
+        File dir = new File(risLogsFolderPath);
+        //todo убрать лямбду для совместимости с Java 1.6
         File[] files = dir.listFiles((d, name) -> name.endsWith(".log"));
-        Pattern pattern = Pattern.compile(REGEXP);
+        Pattern pattern = Pattern.compile(regexp);
         long before = System.currentTimeMillis();
         for (File file : files) {
             System.out.println(file.getAbsolutePath());
@@ -88,7 +98,7 @@ public class ParseAndAddCalls {
     public void processWhichCallsNeedToBeEnded() {
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
             // todo перенести в проперти таймаут завершения звонка
-            if (System.currentTimeMillis() - call.getValue() >= 600000) {
+            if (System.currentTimeMillis() - call.getValue() > callTerminationTimeout) {
                 // отправляем SIP BYE
                 try {
                     sipLayer.sendMessage(call.getKey(), "");

@@ -12,6 +12,8 @@ import javax.sip.header.*;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -55,7 +57,12 @@ public class SipLayer implements SipListener {
         sipFactory.setPathName("gov.nist");
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "SipByeHandler");
-        properties.setProperty("javax.sip.IP_ADDRESS", ip);
+        try {
+            properties.setProperty("javax.sip.IP_ADDRESS", ip.isEmpty() ?
+                    InetAddress.getLocalHost().getHostAddress() : ip);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
 
         //DEBUGGING: Information will go to files
         //textclient.log and textclientdebug.log
@@ -175,7 +182,7 @@ public class SipLayer implements SipListener {
         // с помощью regexp вытаскиваем непосредственно call-id
         Response response = evt.getResponse();
         int status = response.getStatusCode();
-        Pattern pattern = Pattern.compile(ParseAndAddCalls.REGEXP);
+        Pattern pattern = Pattern.compile(ParseAndAddCalls.getRegexp());
         Matcher matcher = pattern.matcher(response.getHeader(CallID.CALL_ID).toString());
         matcher.find();
         parseAndAddCalls.removeClosedCall(matcher.group());

@@ -11,14 +11,19 @@ http://www.springframework.org/schema/mvc
 http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
 
     <context:component-scan base-package="ru.cti.regexp"/>
+    <context:property-placeholder location="classpath*:config.properties"/>
     <beans>
         <bean id="main" class="ru.cti.regexp.Main"/>
-        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndAddCalls" scope="singleton"/>
+        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndAddCalls">
+            <constructor-arg value="${regexp}"/>
+            <constructor-arg value="${risLogsFolderPath}"/>
+            <constructor-arg type="int" value="${callTerminationTimeout}"/>
+        </bean>
         <bean id="sipLayer" class="ru.cti.regexp.SipLayer">
-            <constructor-arg type="java.lang.String" value="VerintSIPByeHandler"/>
-            <constructor-arg type="java.lang.String" value="89.175.77.31"/>
-            <constructor-arg value="#{5085}"/>
-            <constructor-arg type="java.lang.String" value="sip:1015@172.16.33.186:5060"/>
+            <constructor-arg value="${sip.username}"/>
+            <constructor-arg value="${srcIpAddress}"/>
+            <constructor-arg value="${sip.srcPort}"/>
+            <constructor-arg value="${sip.destinationAddress}"/>
         </bean>
     </beans>
 </beans>

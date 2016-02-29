@@ -23,7 +23,8 @@ public class Main {
         threadSleep(500);
         parseAndAddCalls.addCallsFromFiles();
         parseAndAddCalls.processWhichCallsNeedToBeEnded();
-        threadSleep(5000);
+        //todo поставить 5 секунд при релизе
+        threadSleep(500);
         System.out.println(parseAndAddCalls.getCallHashMap().size());
         parseAndAddCalls.commitDbChangesAndCloseDb();
         System.exit(0);
