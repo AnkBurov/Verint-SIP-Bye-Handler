@@ -41,7 +41,9 @@ public class ParseAndAddCalls {
 
     public int addCallsFromFiles() {
         /*директория для парсинга логов*/
-        File dir = new File("C:\\drivers\\");
+        // todo сделать путь папки с логами как поле
+        // todo чтобы пароль принял - нужно сохранить пароль
+        File dir = new File("\\\\172.16.33.186\\integrationservice");
         File[] files = dir.listFiles((d, name) -> name.endsWith(".log"));
         Pattern pattern = Pattern.compile(REGEXP);
         long before = System.currentTimeMillis();
