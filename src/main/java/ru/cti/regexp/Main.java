@@ -38,8 +38,6 @@ public class Main {
         }
     }
 
-    // todo хуячить ip адрес будем руками, но пока командой автоматом
-
     public static void main(String[] args) {
         ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
         Main main = (Main) context.getBean("main");

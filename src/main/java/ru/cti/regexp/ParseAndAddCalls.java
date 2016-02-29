@@ -97,7 +97,6 @@ public class ParseAndAddCalls {
 
     public void processWhichCallsNeedToBeEnded() {
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
-            // todo перенести в проперти таймаут завершения звонка
             if (System.currentTimeMillis() - call.getValue() > callTerminationTimeout) {
                 // отправляем SIP BYE
                 try {

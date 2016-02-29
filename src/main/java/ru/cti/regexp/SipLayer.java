@@ -47,49 +47,65 @@ public class SipLayer implements SipListener {
     /**
      * Here we initialize the SIP stack.
      */
+    // костыль с try из-за неудаления треда Event Scanner при закрытии стека. Баг - см. исходники библиотеки.
     private SipLayer(String username, String ip, int srcPort, String sipDestinationAddress)
             throws PeerUnavailableException, TransportNotSupportedException,
             InvalidArgumentException, ObjectInUseException,
             TooManyListenersException {
-        setUsername(username);
-        this.sipDestinationAddress = sipDestinationAddress;
-        sipFactory = SipFactory.getInstance();
-        sipFactory.setPathName("gov.nist");
-        Properties properties = new Properties();
-        properties.setProperty("javax.sip.STACK_NAME", "SipByeHandler");
         try {
-            properties.setProperty("javax.sip.IP_ADDRESS", ip.isEmpty() ?
-                    InetAddress.getLocalHost().getHostAddress() : ip);
-        } catch (UnknownHostException e) {
+            setUsername(username);
+            this.sipDestinationAddress = sipDestinationAddress;
+            sipFactory = SipFactory.getInstance();
+            sipFactory.setPathName("gov.nist");
+            Properties properties = new Properties();
+            properties.setProperty("javax.sip.STACK_NAME", "SipByeHandler");
+            try {
+                properties.setProperty("javax.sip.IP_ADDRESS", ip.isEmpty() ?
+                        InetAddress.getLocalHost().getHostAddress() : ip);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
+            //DEBUGGING: Information will go to files
+            //textclient.log and textclientdebug.log
+            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
+            properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
+                    "textclient.txt");
+            properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
+                    "textclientdebug.log");
+
+            sipStack = sipFactory.createSipStack(properties);
+            headerFactory = sipFactory.createHeaderFactory();
+            addressFactory = sipFactory.createAddressFactory();
+            messageFactory = sipFactory.createMessageFactory();
+
+            // deprecated. Юзать это ListeningPoint tcp = sipStack.createListeningPoint("192.168.0.1", srcPort, "tcp");
+            ListeningPoint tcp = sipStack.createListeningPoint(ip, srcPort, "tcp");
+            ListeningPoint udp = sipStack.createListeningPoint(ip, srcPort, "udp");
+
+            sipProvider = sipStack.createSipProvider(tcp);
+            sipProvider.addSipListener(this);
+            sipProvider = sipStack.createSipProvider(udp);
+            sipProvider.addSipListener(this);
+        } catch (PeerUnavailableException e) {
             e.printStackTrace();
+            System.exit(-1);
+        } catch (TransportNotSupportedException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (ObjectInUseException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (TooManyListenersException e) {
+            e.printStackTrace();
+            System.exit(-1);
         }
-
-        //DEBUGGING: Information will go to files
-        //textclient.log and textclientdebug.log
-        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-        properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                "textclient.txt");
-        properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "textclientdebug.log");
-
-        sipStack = sipFactory.createSipStack(properties);
-        headerFactory = sipFactory.createHeaderFactory();
-        addressFactory = sipFactory.createAddressFactory();
-        messageFactory = sipFactory.createMessageFactory();
-
-        // deprecated. Юзать это ListeningPoint tcp = sipStack.createListeningPoint("192.168.0.1", srcPort, "tcp");
-        ListeningPoint tcp = sipStack.createListeningPoint(ip, srcPort, "tcp");
-        ListeningPoint udp = sipStack.createListeningPoint(ip, srcPort, "udp");
-
-        sipProvider = sipStack.createSipProvider(tcp);
-        sipProvider.addSipListener(this);
-        sipProvider = sipStack.createSipProvider(udp);
-        sipProvider.addSipListener(this);
     }
 
     // to это в формате SIP:1016@172.16.33.186:5060
-    // todo убрать или переделать message. или не надо
-
     /**
      * This method uses the SIP stack to send a message.
      */
