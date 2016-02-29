@@ -1,5 +1,6 @@
 package ru.cti.regexp;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -7,20 +8,18 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class Main {
+    @Autowired
+    ParseAndAddCalls parseAndAddCalls;
 
-    // todo проверить synchronized хешмапа из ДБ
+    public Main() {
+    }
 
-    // todo хуячить ip адрес будем руками, но пока командой автоматом
-
-    // todo переделать и нормальный вызов контекста, чтобы все классы вызываемые были полями
-    public static void main(String[] args) {
+    public void start() {
         try {
             String ipAddress = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
-        ParseAndAddCalls parseAndAddCalls = (ParseAndAddCalls) context.getBean("parseAndAddCalls");
         threadSleep(500);
         parseAndAddCalls.addCallsFromFiles();
         parseAndAddCalls.processWhichCallsNeedToBeEnded();
@@ -30,11 +29,19 @@ public class Main {
         System.exit(0);
     }
 
-    private static void threadSleep(int milliseconds) {
+    private void threadSleep(int milliseconds) {
         try {
             Thread.currentThread().sleep(milliseconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    // todo хуячить ip адрес будем руками, но пока командой автоматом
+
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
+        Main main = (Main) context.getBean("main");
+        main.start();
     }
 }
