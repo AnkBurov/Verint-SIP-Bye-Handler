@@ -1,4 +1,4 @@
-package ru.cti.regexp;
+package ru.cti.verintsipbyehandler;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,8 +13,19 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ParseAndAddCalls {
-    private static final Logger logger = LogManager.getLogger(ParseAndAddCalls.class);
+/**
+ * This class parses .log files from specified directory, processes calls by adding Call-IDs in MapDB HashMap database
+ * and invokes sendMessage (SIP Bye) method of SipLayer class to end each call when their time comes.
+ * "Their time" is managed by callTerminationTimeout attribute. See config.properties for more information.
+ * When application receives SIP Response for each SIP Bye request, special method removes completed call from
+ * current call database (callDB) and adds it to completed call database.
+ * Before normal exit from application, method commitDbChangesAndCloseDb removes old calls from completed call database.
+ * The attribute completedCallDeletionTimer used to decide whether to remove call or it's too early.
+ *
+ * @author Eugeny
+ */
+public class ParseAndProcessCalls {
+    private static final Logger logger = LogManager.getLogger(ParseAndProcessCalls.class);
     @Autowired
     private SipLayer sipLayer;
     private DB callDB;
@@ -26,14 +37,18 @@ public class ParseAndAddCalls {
     private static String regexp;
     private String risLogsFolderPath;
 
-    // SipLayer использует переменную regexp
-    public static String getRegexp() {
-        return regexp;
-    }
-
-    // todo НЕ ЗАБЫТЬ COMMIT ЭТОЙ БД!
-    public ParseAndAddCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout,
-                            int completedCallDeletionTimer) throws Exception {
+    /**
+     * Constructor method
+     *
+     * @param regexp                      used regular expression from config.properties
+     * @param risLogsFolderPath           RIS log folder from config.properties (and next ones)
+     * @param callTerminationTimeout      timeout before each call will be ended by sending SIP Bye request.
+     *                                    measures in ms in code.
+     * @param completedCallDeletionTimer: timeout before each call will be removed from completed calls DB
+     *                                    measures in ms in code;
+     */
+    public ParseAndProcessCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout,
+                                int completedCallDeletionTimer) throws Exception {
         callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
                 .keySerializer(Serializer.STRING)
@@ -44,23 +59,17 @@ public class ParseAndAddCalls {
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.LONG)
                 .makeOrGet();
-        ParseAndAddCalls.regexp = regexp; // заполнение статической переменной
+        ParseAndProcessCalls.regexp = regexp; // заполнение статической переменной
         this.risLogsFolderPath = risLogsFolderPath;
         this.callTerminationTimeout = callTerminationTimeout * 60000;
         this.completedCallDeletionTimer = completedCallDeletionTimer * 86400000;
     }
 
-    public HTreeMap<String, Long> getCallHashMap() {
-        return callHashMap;
-    }
-
+    /**
+     * This method parses and adds call-ids to current call DB. Each call will only be added if it absents in
+     * completed call DB. It need to prevent adding and sending SIP Bye requests several time instead of one
+     */
     public int addCallsFromFiles() throws Exception {
-        System.out.println(callHashMap.size());
-        System.out.println(completedCallsHashMap.size());
-        for (int i = 0; i < completedCallsHashMap.size(); i++) {
-        }
-        /*директория для парсинга логов*/
-        // чтобы пароль принял - нужно сохранить пароль
         File dir = new File(risLogsFolderPath);
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
@@ -72,17 +81,11 @@ public class ParseAndAddCalls {
             }
         });
         Pattern pattern = Pattern.compile(regexp);
-        long before = System.currentTimeMillis();
-        // todo убрать из консоли
-        for (File file : files) {
-            System.out.println(file.getAbsolutePath());
-        }
         for (File file : files) {
             logger.info("Trying to parse regexp in log file " + file.getAbsolutePath());
             FileReader fileReader = null;
             try {
                 fileReader = new FileReader(file);
-                // считаем файл полностью
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 String buffer;
                 while ((buffer = bufferedReader.readLine()) != null) {
@@ -114,27 +117,28 @@ public class ParseAndAddCalls {
                 }
             }
         }
-        System.out.println(System.currentTimeMillis() - before);
-        System.out.println(callHashMap.size());
         logger.info("Log files by path " + risLogsFolderPath + " have been observed");
-        logger.info(callHashMap.size() + " calls currently stored in current calls DB and " + completedCallsHashMap +
+        logger.info(callHashMap.size() + " calls currently stored in current calls DB and " + completedCallsHashMap.size() +
                 " calls in completed calls DB");
         return callHashMap.size();
     }
 
+    /**
+     * This method processes each call in current call DB and invokes sendMessage method of SipLayer class.
+     * sendMessage method invokes only if call is older than specified callTerminationTimeout
+     */
     public void processWhichCallsNeedToBeEnded() {
         logger.info("The set call termination timeout is " + callTerminationTimeout / 60000 + " minutes");
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
             if (!completedCallsHashMap.containsKey(call.getKey()) &&
                     System.currentTimeMillis() - call.getValue() > callTerminationTimeout) {
-                // отправляем SIP BYE
+                // sending SIP Bye
                 try {
                     logger.debug("Trying to send SIP BYE message on call " + call.getKey());
                     sipLayer.sendMessage(call.getKey(), "");
-                    // задержка нужна, чтобы не перезагрузить адаптер
-                    // в больших окружениях, полагаю, нужно ставить больше
+                    // delay needed for not overweighting remote SIP adapter
                     try {
-                        Thread.currentThread().sleep(10);
+                        Thread.currentThread().sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -152,8 +156,10 @@ public class ParseAndAddCalls {
         }
     }
 
+    /**
+     * method removes call from current call DB and adds it to completed call DB
+     */
     public boolean removeClosedCall(String callId) {
-        //todo написать в логе removed
         try {
             completedCallsHashMap.putIfAbsent(callId, System.currentTimeMillis());
             callHashMap.remove(callId);
@@ -167,12 +173,14 @@ public class ParseAndAddCalls {
         }
     }
 
-
+    /**
+     * method commitDbChangesAndCloseDb removes old calls from completed call database and commites changes
+     */
     public boolean commitDbChangesAndCloseDb() {
         try {
             // удаление старых записей в completed calls DB
-            for(Iterator<Map.Entry<String, Long>> iterator = completedCallsHashMap.entrySet().iterator();
-                iterator.hasNext(); ) {
+            for (Iterator<Map.Entry<String, Long>> iterator = completedCallsHashMap.entrySet().iterator();
+                 iterator.hasNext(); ) {
                 Map.Entry<String, Long> entry = iterator.next();
                 if (System.currentTimeMillis() - entry.getValue() > completedCallDeletionTimer) {
                     long markedForRemovalCallAge = (System.currentTimeMillis() - entry.getValue()) / 86400000;
@@ -189,5 +197,9 @@ public class ParseAndAddCalls {
             logger.catching(e);
             return false;
         }
+    }
+
+    public static String getRegexp() {
+        return regexp;
     }
 }

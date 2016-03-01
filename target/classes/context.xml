@@ -14,7 +14,7 @@ http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
     <context:property-placeholder location="classpath*:config.properties"/>
     <beans>
         <bean id="main" class="ru.cti.regexp.Main"/>
-        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndAddCalls">
+        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndProcessCalls">
             <constructor-arg value="${regexp}"/>
             <constructor-arg value="${risLogsFolderPath}"/>
             <constructor-arg type="int" value="${callTerminationTimeout}"/>
@@ -25,6 +25,7 @@ http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
             <constructor-arg value="${srcIpAddress}"/>
             <constructor-arg value="${sip.srcPort}"/>
             <constructor-arg value="${sip.destinationAddress}"/>
+            <constructor-arg value="${sipLibraryLogLevel}"/>
         </bean>
     </beans>
 </beans>

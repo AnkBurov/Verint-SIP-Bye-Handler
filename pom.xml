@@ -33,7 +33,7 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>ru.cti.regexp.Main</mainClass>
+                            <mainClass>ru.cti.verintsipbyehandler.Main</mainClass>
                             <arguments>
                                 <argument>arg0</argument>
                                 <argument>arg1</argument>
@@ -68,11 +68,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.38</version>
         </dependency>
         <dependency>
             <groupId>org.mapdb</groupId>
