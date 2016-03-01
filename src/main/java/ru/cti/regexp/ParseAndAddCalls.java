@@ -49,8 +49,15 @@ public class ParseAndAddCalls {
         /*директория для парсинга логов*/
         // чтобы пароль принял - нужно сохранить пароль
         File dir = new File(risLogsFolderPath);
-        //todo убрать лямбду для совместимости с Java 1.6
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".log"));
+        File[] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                if (name.endsWith(".log")) {
+                    return true;
+                }
+                return false;
+            }
+        });
         Pattern pattern = Pattern.compile(regexp);
         long before = System.currentTimeMillis();
         // todo убрать из консоли
