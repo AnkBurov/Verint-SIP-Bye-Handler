@@ -48,6 +48,7 @@ public class SipLayer implements SipListener {
     ParseAndAddCalls parseAndAddCalls;
 
     // todo попробовать с throws все эксепшены
+
     /**
      * Here we initialize the SIP stack.
      */
@@ -120,6 +121,7 @@ public class SipLayer implements SipListener {
     }
 
     // to это в формате SIP:1016@172.16.33.186:5060
+
     /**
      * This method uses the SIP stack to send a message.
      */
@@ -177,7 +179,8 @@ public class SipLayer implements SipListener {
         request.setContent(message, contentTypeHeader);
 
         sipProvider.sendRequest(request);
-        logger.debug("SIP BYE message of call " + callId + " has been send");
+        logger.info("SIP BYE message of call " + callId + " has been send");
+        logger.debug(request.toString());
     }
 
     public CallIdHeader transformStringToCallId(String callId) {
@@ -211,7 +214,19 @@ public class SipLayer implements SipListener {
 
         // с помощью regexp вытаскиваем непосредственно call-id
         Response response = evt.getResponse();
-        int status = response.getStatusCode();
+        if (response.getStatusCode() == 400 && response.getReasonPhrase().equals("OK")) {
+            logger.info("Received SIP Response " + response.getStatusCode() + " " + response.getReasonPhrase() +
+                    " therefore call " + response.getHeader(CallID.CALL_ID) + " has been ended");
+            logger.debug(response.toString());
+        } else if (response.getStatusCode() == 400 && response.getReasonPhrase().equals("Bad request")) {
+            logger.info("Received SIP Response " + response.getStatusCode() + " " + response.getReasonPhrase() +
+                    " call " + response.getHeader(CallID.CALL_ID) + " wasn't found on remote side of SIP dialog. " +
+                    "Probably it was already terminated");
+            logger.debug(response.toString());
+        } else {
+            logger.warn("Received incorrect SIP Response for this application. The SIP Response message is below " +
+                    "\n" + response.toString());
+        }
         Pattern pattern = Pattern.compile(ParseAndAddCalls.getRegexp());
         Matcher matcher = pattern.matcher(response.getHeader(CallID.CALL_ID).toString());
         matcher.find();

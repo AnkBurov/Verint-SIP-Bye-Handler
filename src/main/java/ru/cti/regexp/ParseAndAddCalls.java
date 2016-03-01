@@ -2,11 +2,9 @@ package ru.cti.regexp;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
-import org.mapdb.Serializer;
+import org.mapdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -32,8 +30,6 @@ public class ParseAndAddCalls {
     }
 
 
-
-
     public ParseAndAddCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout) throws Exception {
         callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
@@ -57,10 +53,12 @@ public class ParseAndAddCalls {
         File[] files = dir.listFiles((d, name) -> name.endsWith(".log"));
         Pattern pattern = Pattern.compile(regexp);
         long before = System.currentTimeMillis();
+        // todo убрать из консоли
         for (File file : files) {
             System.out.println(file.getAbsolutePath());
         }
         for (File file : files) {
+            logger.info("Trying to parse regexp in log file " + file.getAbsolutePath());
             FileReader fileReader = null;
             try {
                 fileReader = new FileReader(file);
@@ -72,6 +70,10 @@ public class ParseAndAddCalls {
                         if (buffer.contains("Request<INVITE>")) {
                             Matcher matcher = pattern.matcher(buffer.substring(200));
                             if (matcher.find()) {
+                                String tempFoundString = matcher.group();
+                                if (!callHashMap.containsKey(tempFoundString)) {
+                                    logger.info("Call " + tempFoundString + " has been added to DB");
+                                }
                                 callHashMap.putIfAbsent(matcher.group(), System.currentTimeMillis());
                             }
                         }
@@ -92,11 +94,13 @@ public class ParseAndAddCalls {
         }
         System.out.println(System.currentTimeMillis() - before);
         System.out.println(callHashMap.size());
+        logger.info("Log files by path " + risLogsFolderPath + " have been observed");
         logger.info(callHashMap.size() + " calls currently stored in DB.");
         return callHashMap.size();
     }
 
     public void processWhichCallsNeedToBeEnded() {
+        logger.info("The set call termination timeout is " + callTerminationTimeout / 60000 + " minutes");
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
             long current = System.currentTimeMillis();
             long test2 = call.getValue();
@@ -131,9 +135,11 @@ public class ParseAndAddCalls {
         //todo написать в логе removed
         try {
             callHashMap.remove(callId);
+            logger.debug("Call " + callId + " has been removed from DB");
             return true;
         } catch (Exception e) {
             e.printStackTrace();
+            logger.catching(e);
             return false;
         }
     }
@@ -142,9 +148,11 @@ public class ParseAndAddCalls {
         try {
             callDB.commit();
             callDB.close();
+            logger.info("All DB changes have been successfully committed and DB closed");
             return true;
         } catch (Exception e) {
             e.printStackTrace();
+            logger.catching(e);
             return false;
         }
     }
