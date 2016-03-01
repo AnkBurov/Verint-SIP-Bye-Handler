@@ -18,6 +18,7 @@ http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
             <constructor-arg value="${regexp}"/>
             <constructor-arg value="${risLogsFolderPath}"/>
             <constructor-arg type="int" value="${callTerminationTimeout}"/>
+            <constructor-arg type="int" value="${completedCallDeletionTimer}"/>
         </bean>
         <bean id="sipLayer" class="ru.cti.regexp.SipLayer">
             <constructor-arg value="${sip.username}"/>

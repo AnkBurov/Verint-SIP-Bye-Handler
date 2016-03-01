@@ -34,7 +34,7 @@ public class Main {
         Thread.currentThread().sleep(500);
         System.out.println(parseAndAddCalls.getCallHashMap().size());
         parseAndAddCalls.commitDbChangesAndCloseDb();
-        logger.info("The application has been accomplished");
+        logger.info("The application has been accomplished\n");
         System.exit(0);
     }
 
