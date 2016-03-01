@@ -55,8 +55,11 @@ public class SipLayer implements SipListener {
     private SipLayer(String username, String ip, int srcPort, String sipDestinationAddress)
             throws PeerUnavailableException, TransportNotSupportedException,
             InvalidArgumentException, ObjectInUseException,
-            TooManyListenersException {
+            TooManyListenersException, UnknownHostException {
         try {
+            if (ip.isEmpty()) {
+                ip = InetAddress.getLocalHost().getHostAddress();
+            }
             setUsername(username);
             this.sipDestinationAddress = sipDestinationAddress;
             sipFactory = SipFactory.getInstance();
