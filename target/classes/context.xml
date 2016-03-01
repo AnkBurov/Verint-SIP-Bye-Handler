@@ -10,17 +10,17 @@ http://www.springframework.org/schema/context/spring-context-4.0.xsd
 http://www.springframework.org/schema/mvc
 http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
 
-    <context:component-scan base-package="ru.cti.regexp"/>
+    <context:component-scan base-package="ru.cti.verintsipbyehandler"/>
     <context:property-placeholder location="classpath*:config.properties"/>
     <beans>
-        <bean id="main" class="ru.cti.regexp.Main"/>
-        <bean id="parseAndAddCalls" class="ru.cti.regexp.ParseAndProcessCalls">
+        <bean id="main" class="ru.cti.verintsipbyehandler.Main"/>
+        <bean id="parseAndAddCalls" class="ru.cti.verintsipbyehandler.ParseAndProcessCalls">
             <constructor-arg value="${regexp}"/>
             <constructor-arg value="${risLogsFolderPath}"/>
             <constructor-arg type="int" value="${callTerminationTimeout}"/>
             <constructor-arg type="int" value="${completedCallDeletionTimer}"/>
         </bean>
-        <bean id="sipLayer" class="ru.cti.regexp.SipLayer">
+        <bean id="sipLayer" class="ru.cti.verintsipbyehandler.SipLayer">
             <constructor-arg value="${sip.username}"/>
             <constructor-arg value="${srcIpAddress}"/>
             <constructor-arg value="${sip.srcPort}"/>

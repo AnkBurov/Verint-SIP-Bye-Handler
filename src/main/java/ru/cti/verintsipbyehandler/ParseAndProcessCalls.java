@@ -49,12 +49,12 @@ public class ParseAndProcessCalls {
      */
     public ParseAndProcessCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout,
                                 int completedCallDeletionTimer) throws Exception {
-        callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
+        callDB = DBMaker.fileDB(new File("db/calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.LONG)
                 .makeOrGet();
-        completedCallsDB = DBMaker.fileDB(new File("compltetedcalls")).closeOnJvmShutdown().make();
+        completedCallsDB = DBMaker.fileDB(new File("db/compltetedcalls")).closeOnJvmShutdown().make();
         completedCallsHashMap = completedCallsDB.hashMapCreate("completedcallsHashMap")
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.LONG)
@@ -128,7 +128,8 @@ public class ParseAndProcessCalls {
      * sendMessage method invokes only if call is older than specified callTerminationTimeout
      */
     public void processWhichCallsNeedToBeEnded() {
-        logger.info("The set call termination timeout is " + callTerminationTimeout / 60000 + " minutes");
+        logger.info("The set call termination timeout is " + callTerminationTimeout / 60000 + " minutes and " +
+                "completed calls deletion timeout is " + completedCallDeletionTimer / + 86400000 + " days");
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
             if (!completedCallsHashMap.containsKey(call.getKey()) &&
                     System.currentTimeMillis() - call.getValue() > callTerminationTimeout) {
