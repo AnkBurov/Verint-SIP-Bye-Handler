@@ -2,6 +2,8 @@ package ru.cti.regexp;
 
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.stack.MessageProcessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sip.*;
@@ -22,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SipLayer implements SipListener {
+    private static final Logger logger = LogManager.getLogger(SipLayer.class);
 
     private MessageProcessor messageProcessor;
 
@@ -44,6 +47,7 @@ public class SipLayer implements SipListener {
     @Autowired
     ParseAndAddCalls parseAndAddCalls;
 
+    // todo попробовать с throws все эксепшены
     /**
      * Here we initialize the SIP stack.
      */
@@ -64,6 +68,8 @@ public class SipLayer implements SipListener {
                         InetAddress.getLocalHost().getHostAddress() : ip);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
+                logger.error("Automatic invocation of server's IP address has been failed. Try to " +
+                        "specify server's IP address manually in config.properties " + e);
             }
 
             //DEBUGGING: Information will go to files
@@ -89,18 +95,23 @@ public class SipLayer implements SipListener {
             sipProvider.addSipListener(this);
         } catch (PeerUnavailableException e) {
             e.printStackTrace();
+            logger.catching(e);
             System.exit(-1);
         } catch (TransportNotSupportedException e) {
             e.printStackTrace();
+            logger.catching(e);
             System.exit(-1);
         } catch (InvalidArgumentException e) {
             e.printStackTrace();
+            logger.catching(e);
             System.exit(-1);
         } catch (ObjectInUseException e) {
             e.printStackTrace();
+            logger.catching(e);
             System.exit(-1);
         } catch (TooManyListenersException e) {
             e.printStackTrace();
+            logger.catching(e);
             System.exit(-1);
         }
     }
@@ -136,7 +147,6 @@ public class SipLayer implements SipListener {
                 getPort(), "udp", "branch1");
         viaHeaders.add(viaHeader);
 
-//        CallIdHeader callIdHeader = getSpecifiedCallId();
         CallIdHeader callIdHeader = transformStringToCallId(callId);
 
         CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1,
@@ -164,6 +174,7 @@ public class SipLayer implements SipListener {
         request.setContent(message, contentTypeHeader);
 
         sipProvider.sendRequest(request);
+        logger.debug("SIP BYE message of call " + callId + " has been send");
     }
 
     public CallIdHeader transformStringToCallId(String callId) {
@@ -172,8 +183,8 @@ public class SipLayer implements SipListener {
 
         try {
             var2.setCallId(var1);
-        } catch (ParseException var4) {
-            ;
+        } catch (ParseException e) {
+            logger.catching(e);
         }
 
         return var2;

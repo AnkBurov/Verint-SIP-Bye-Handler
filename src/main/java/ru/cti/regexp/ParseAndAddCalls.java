@@ -1,5 +1,7 @@
 package ru.cti.regexp;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
@@ -14,10 +16,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by e.karpov on 25.02.2016.
- */
 public class ParseAndAddCalls {
+    private static final Logger logger = LogManager.getLogger(ParseAndAddCalls.class);
     @Autowired
     private SipLayer sipLayer;
     private DB callDB;
@@ -34,7 +34,7 @@ public class ParseAndAddCalls {
 
 
 
-    public ParseAndAddCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout) {
+    public ParseAndAddCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout) throws Exception {
         callDB = DBMaker.fileDB(new File("calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
                 .keySerializer(Serializer.STRING)
@@ -49,7 +49,7 @@ public class ParseAndAddCalls {
         return callHashMap;
     }
 
-    public int addCallsFromFiles() {
+    public int addCallsFromFiles() throws Exception {
         /*директория для парсинга логов*/
         // чтобы пароль принял - нужно сохранить пароль
         File dir = new File(risLogsFolderPath);
@@ -80,26 +80,31 @@ public class ParseAndAddCalls {
                 callDB.commit();
             } catch (IOException e) {
                 e.printStackTrace();
+                logger.catching(e);
             } finally {
                 try {
                     fileReader.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    logger.catching(e);
                 }
             }
         }
         System.out.println(System.currentTimeMillis() - before);
-//        System.out.println(calls.size());
-//        return calls.size();
         System.out.println(callHashMap.size());
+        logger.info(callHashMap.size() + " calls currently stored in DB.");
         return callHashMap.size();
     }
 
     public void processWhichCallsNeedToBeEnded() {
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
+            long current = System.currentTimeMillis();
+            long test2 = call.getValue();
+            long test = System.currentTimeMillis() - call.getValue();
             if (System.currentTimeMillis() - call.getValue() > callTerminationTimeout) {
                 // отправляем SIP BYE
                 try {
+                    logger.debug("Trying to send SIP BYE message on call " + call.getKey());
                     sipLayer.sendMessage(call.getKey(), "");
                     // задержка нужна, чтобы не перезагрузить адаптер
                     // в больших окружениях, полагаю, нужно ставить больше
@@ -110,10 +115,13 @@ public class ParseAndAddCalls {
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
+                    logger.catching(e);
                 } catch (InvalidArgumentException e) {
                     e.printStackTrace();
+                    logger.catching(e);
                 } catch (SipException e) {
                     e.printStackTrace();
+                    logger.catching(e);
                 }
             }
         }
