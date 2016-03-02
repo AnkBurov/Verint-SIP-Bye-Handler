@@ -1,4 +1,7 @@
 /.idea/
+/db/
+/logs/
+/target/
 *.iml
 *.class
 *.mf

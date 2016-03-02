@@ -33,7 +33,7 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>ru.cti.regexp.Main</mainClass>
+                            <mainClass>ru.cti.verintsipbyehandler.Main</mainClass>
                             <arguments>
                                 <argument>arg0</argument>
                                 <argument>arg1</argument>
@@ -70,11 +70,6 @@
             <version>${spring.version}</version>
         </dependency>
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.38</version>
-        </dependency>
-        <dependency>
             <groupId>org.mapdb</groupId>
             <artifactId>mapdb</artifactId>
             <version>2.0-beta13</version>
@@ -93,6 +88,11 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.5</version>
         </dependency>
 
     </dependencies>
