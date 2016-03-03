@@ -1,7 +1,6 @@
 package ru.cti.verintsipbyehandler;
 
 import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.stack.MessageProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ import java.util.regex.Pattern;
 
 /**
  * Class implements all SIP related logic.
- * Class has methods for sendind requests and processing responses.
+ * Class has methods for sending requests and processing responses.
  * sendMessage method sends SIP Bye requests with different Call-ID headers
  * processMessage method receives SIP Responses and processes them by invoking removeClosedCall of parseAndProcessClass
  * Based on JAIN SIP library.
@@ -35,7 +34,6 @@ import java.util.regex.Pattern;
  */
 public class SipLayer implements SipListener {
     private static final Logger logger = LogManager.getLogger(SipLayer.class);
-    private MessageProcessor messageProcessor;
     private String username;
     private SipStack sipStack;
     private SipFactory sipFactory;
@@ -55,7 +53,7 @@ public class SipLayer implements SipListener {
      * for more details.
      * Parameters are pretty straightforward
      */
-    private SipLayer(String username, String ip, int srcPort, String sipDestinationAddress, String sipLibraryLogLevel)
+    public SipLayer(String username, String ip, int srcPort, String sipDestinationAddress, String sipLibraryLogLevel)
             throws PeerUnavailableException, TransportNotSupportedException,
             InvalidArgumentException, ObjectInUseException,
             TooManyListenersException, UnknownHostException {
@@ -97,23 +95,8 @@ public class SipLayer implements SipListener {
             sipProvider.addSipListener(this);
             sipProvider = sipStack.createSipProvider(udp);
             sipProvider.addSipListener(this);
-        } catch (PeerUnavailableException e) {
-            e.printStackTrace();
-            logger.catching(e);
-            System.exit(-1);
-        } catch (TransportNotSupportedException e) {
-            e.printStackTrace();
-            logger.catching(e);
-            System.exit(-1);
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-            logger.catching(e);
-            System.exit(-1);
-        } catch (ObjectInUseException e) {
-            e.printStackTrace();
-            logger.catching(e);
-            System.exit(-1);
-        } catch (TooManyListenersException e) {
+        } catch (PeerUnavailableException | TransportNotSupportedException | InvalidArgumentException
+                | ObjectInUseException | TooManyListenersException e) {
             e.printStackTrace();
             logger.catching(e);
             System.exit(-1);
@@ -131,7 +114,7 @@ public class SipLayer implements SipListener {
         fromNameAddress.setDisplayName(getUsername());
         //todo проверить textclient
         FromHeader fromHeader = headerFactory.createFromHeader(fromNameAddress,
-                "textclientv1.0");
+                "VerintSIPByeHandler");
 
         String username = sipDestinationAddress.substring(sipDestinationAddress.indexOf(":") + 1,
                 sipDestinationAddress.indexOf("@"));
@@ -213,7 +196,8 @@ public class SipLayer implements SipListener {
                     "Probably it was already terminated");
             logger.debug(response.toString());
         } else {
-            logger.warn("Received incorrect SIP Response for this application. The SIP Response message is below " +
+            logger.warn("Received incorrect SIP Response for this application on call " + matchedCallIdString +
+                    ". The SIP Response message is below " +
                     "\n" + response.toString());
         }
         parseAndProcessCalls.removeClosedCall(matchedCallIdString);
