@@ -201,7 +201,7 @@ public class SipLayer implements SipListener {
         Matcher matcher = pattern.matcher(response.getHeader(CallID.CALL_ID).toString());
         matcher.find();
         String matchedCallIdString = matcher.group();
-        if (response.getStatusCode() == 400 && response.getReasonPhrase().equals("OK")) {
+        if (response.getStatusCode() == 200 && response.getReasonPhrase().equals("OK")) {
             logger.info("Received SIP Response " + response.getStatusCode() + " " + response.getReasonPhrase() +
                     " therefore call " + matchedCallIdString + " has been ended");
             logger.debug(response.toString());
