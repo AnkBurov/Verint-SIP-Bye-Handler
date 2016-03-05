@@ -95,8 +95,23 @@ public class SipLayer implements SipListener {
             sipProvider.addSipListener(this);
             sipProvider = sipStack.createSipProvider(udp);
             sipProvider.addSipListener(this);
-        } catch (PeerUnavailableException | TransportNotSupportedException | InvalidArgumentException
-                | ObjectInUseException | TooManyListenersException e) {
+        } catch (PeerUnavailableException e) {
+            e.printStackTrace();
+            logger.catching(e);
+            System.exit(-1);
+        } catch (TransportNotSupportedException e) {
+            e.printStackTrace();
+            logger.catching(e);
+            System.exit(-1);
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
+            logger.catching(e);
+            System.exit(-1);
+        } catch (ObjectInUseException e) {
+            e.printStackTrace();
+            logger.catching(e);
+            System.exit(-1);
+        } catch (TooManyListenersException e) {
             e.printStackTrace();
             logger.catching(e);
             System.exit(-1);

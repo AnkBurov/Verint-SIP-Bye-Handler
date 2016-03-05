@@ -143,7 +143,13 @@ public class ParseAndProcessCalls {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                } catch (ParseException | InvalidArgumentException | SipException e) {
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    logger.catching(e);
+                } catch (InvalidArgumentException e) {
+                    e.printStackTrace();
+                    logger.catching(e);
+                } catch (SipException e) {
                     e.printStackTrace();
                     logger.catching(e);
                 }
