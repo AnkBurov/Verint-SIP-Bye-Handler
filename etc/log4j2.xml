@@ -7,14 +7,13 @@
                 <Pattern>%d %p %c{1} [%t] | %m%n</Pattern>
             </PatternLayout>
             <Policies>
-                <TimeBasedTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="64 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="info">
+        <Root level="debug">
             <AppenderRef ref="RollingFile"/>
         </Root>
     </Loggers>
