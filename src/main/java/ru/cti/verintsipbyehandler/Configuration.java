@@ -3,6 +3,7 @@ package ru.cti.verintsipbyehandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.env.Environment;
 
 import javax.sip.InvalidArgumentException;
@@ -16,7 +17,7 @@ import java.util.TooManyListenersException;
  * Spring Java configuration file
  */
 @org.springframework.context.annotation.Configuration
-@PropertySource("classpath:config.properties")
+@PropertySources({ @PropertySource(value = "config.properties")})
 public class Configuration {
     @Autowired
     Environment env;

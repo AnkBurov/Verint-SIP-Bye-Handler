@@ -7,11 +7,22 @@
     <groupId>ru.cti</groupId>
     <artifactId>verintbyehandler</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <spring.version>4.2.5.RELEASE</spring.version>
+        <resource.directory>etc</resource.directory>
     </properties>
     <build>
+        <resources>
+            <!-- Placeholders that are found from the files located in the configured
+                resource directories are replaced with the property values found from the
+                profile specific configuration file. -->
+            <resource>
+                <directory>${resource.directory}</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -38,6 +49,25 @@
                                 <argument>arg0</argument>
                                 <argument>arg1</argument>
                             </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${basedir}/etc/config.properties</file>
+                                <file>${basedir}/etc/log4j2.xml</file>
+                            </files>
                         </configuration>
                     </execution>
                 </executions>
@@ -95,5 +125,10 @@
             <version>2.5</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>properties-maven-plugin</artifactId>
+            <version>1.0-alpha-2</version>
+        </dependency>
     </dependencies>
 </project>
