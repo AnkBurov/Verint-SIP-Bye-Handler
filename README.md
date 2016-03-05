@@ -1,6 +1,6 @@
 # Verint SIP Bye Handler #
 * Successfully solves the problem between Cisco UCM and recording server when CUCM recording calls stuck in preserved mode until SIP Trunk reboot. Details of the bug are here: https://tools.cisco.com/bugsearch/bug/CSCuv29131
-The application itself closes such calls by sending SIP Bye requests. More information how exactly this application works is in detailed comments in source code files. 
+The application itself works by parsing log files for call-id strings and closing found calls by sending SIP Bye requests. More information how exactly this application works is in detailed comments in source code files. 
 * Version 1.0.
 
 ## Requirements ##
@@ -17,4 +17,4 @@ The application itself closes such calls by sending SIP Bye requests. More infor
 * Run created task and check /etc/application.log for any errors or exceptions.
 
 ## Release notes ##
-* 1.00 Release. 
+* 1.00 Release.
