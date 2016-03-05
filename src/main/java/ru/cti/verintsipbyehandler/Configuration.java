@@ -17,7 +17,7 @@ import java.util.TooManyListenersException;
  * Spring Java configuration file
  */
 @org.springframework.context.annotation.Configuration
-@PropertySources({ @PropertySource(value = "config.properties")})
+@PropertySources({ @PropertySource(value = "file:etc/config.properties")})
 public class Configuration {
     @Autowired
     Environment env;
