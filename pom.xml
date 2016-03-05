@@ -23,7 +23,7 @@
                 <filtering>true</filtering>
                 <excludes>
                     <exclude>config.properties</exclude>
-                    <exclude>log4j2.xml</exclude>
+                    <exclude>etc/log4j2.xml</exclude>
                 </excludes>
             </resource>
         </resources>

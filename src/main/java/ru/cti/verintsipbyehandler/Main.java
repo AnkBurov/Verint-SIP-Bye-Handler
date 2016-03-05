@@ -7,6 +7,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.io.File;
+
 /**
  * Verint SIP Bye Handler v1.0
  * Successfully solves the problem between Cisco UCM and recording server when CUCM recording calls stuck
