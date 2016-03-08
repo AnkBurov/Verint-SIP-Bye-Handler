@@ -13,8 +13,13 @@ The application itself works by parsing log files for call-id strings and closin
 * Download latest release of Verint SIP Bye Handler and extract zip archive in needed place.
 * Configure settings in etc/config.properties. You should at least specify SIP number of the recorder, risLogFolderLocation and callTerminationTimeout. See detailed comments about each property in the etc/config.properties.
 * Setup new rule in Task Scheduler (Windows) or Cron (*nix) with trigger every 5 minutes (or more) and executing (%path_to_JRE_folder%/bin/javaw -Dlog4j.configurationFile=etc/log4j2.xml -jar verintbyehandler.jar and working directory (Start in) as path to folder with extracted Verint SIP Bye Handler.
+* * For Windows you can also use .exe file for running the application instead of .jar file. Just schedule a job in Task Scheduler with executing %path_to_exe%\verintbyehandler.exe and parameter start in as path to folder with extracted Verint SIP Bye Handler application.
 * * In case of installing on Linux - just write simple script: cd <Verint SIP Bye Handler path>	and mentioned above java command, and execute it in Cron.
 * Run created task and check /etc/application.log for any errors or exceptions.
 
 ## Release notes ##
-* 1.00 Release.
+* 1.01
+Added .exe file for Windows environment.
+
+* 1.00 
+Release.
