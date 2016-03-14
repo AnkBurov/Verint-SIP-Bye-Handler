@@ -102,7 +102,7 @@ public class ParseAndProcessCalls {
                                     if (!callHashMap.containsKey(regexFoundString)) {
                                         logger.info("Call " + regexFoundString + " has been added to current calls DB");
                                     }
-                                    callHashMap.putIfAbsent(matcher.group(), System.currentTimeMillis());
+                                    callHashMap.putIfAbsent(regexFoundString, System.currentTimeMillis());
                                 }
                             }
                         }
