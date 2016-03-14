@@ -34,6 +34,7 @@ public class ParseAndProcessCalls {
     private HTreeMap<String, Long> completedCallsHashMap;
     private long callTerminationTimeout;
     private long completedCallDeletionTimer;
+    private int sipByeSenderPause;
     private static String regexp;
     private String risLogsFolderPath;
 
@@ -46,9 +47,11 @@ public class ParseAndProcessCalls {
      *                                    measures in ms in code.
      * @param completedCallDeletionTimer: timeout before each call will be removed from completed calls DB
      *                                    measures in ms in code;
+     * @param sipByeSenderPause           Number of MILLISECONDS between each outgoing SIP Bye message.
+     *                                    Delay needed for not overweighting remote SIP adapter
      */
     public ParseAndProcessCalls(String regexp, String risLogsFolderPath, int callTerminationTimeout,
-                                int completedCallDeletionTimer) throws Exception {
+                                int completedCallDeletionTimer, int sipByeSenderPause) throws Exception {
         callDB = DBMaker.fileDB(new File("db/calls")).closeOnJvmShutdown().make();
         callHashMap = callDB.hashMapCreate("callsHashMap")
                 .keySerializer(Serializer.STRING)
@@ -63,6 +66,7 @@ public class ParseAndProcessCalls {
         this.risLogsFolderPath = risLogsFolderPath;
         this.callTerminationTimeout = callTerminationTimeout * 60000;
         this.completedCallDeletionTimer = completedCallDeletionTimer * 86400000;
+        this.sipByeSenderPause = sipByeSenderPause;
     }
 
     /**
@@ -98,7 +102,7 @@ public class ParseAndProcessCalls {
                                     if (!callHashMap.containsKey(regexFoundString)) {
                                         logger.info("Call " + regexFoundString + " has been added to current calls DB");
                                     }
-                                    callHashMap.putIfAbsent(matcher.group(), System.currentTimeMillis());
+                                    callHashMap.putIfAbsent(regexFoundString, System.currentTimeMillis());
                                 }
                             }
                         }
@@ -129,17 +133,17 @@ public class ParseAndProcessCalls {
      */
     public void processWhichCallsNeedToBeEnded() {
         logger.info("The set call termination timeout is " + callTerminationTimeout / 60000 + " minutes and " +
-                "completed calls deletion timeout is " + completedCallDeletionTimer / + 86400000 + " days");
+                "completed calls deletion timeout is " + completedCallDeletionTimer / +86400000 + " days");
         for (Map.Entry<String, Long> call : callHashMap.entrySet()) {
             if (!completedCallsHashMap.containsKey(call.getKey()) &&
                     System.currentTimeMillis() - call.getValue() > callTerminationTimeout) {
                 // sending SIP Bye
                 try {
-                    logger.debug("Trying to send SIP BYE message on call " + call.getKey());
+                    logger.info("Trying to send SIP BYE message on call " + call.getKey());
                     sipLayer.sendMessage(call.getKey(), "");
                     // delay needed for not overweighting remote SIP adapter
                     try {
-                        Thread.currentThread().sleep(20);
+                        Thread.currentThread().sleep(sipByeSenderPause);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -164,8 +168,7 @@ public class ParseAndProcessCalls {
         try {
             completedCallsHashMap.putIfAbsent(callId, System.currentTimeMillis());
             callHashMap.remove(callId);
-            completedCallsDB.commit();
-            logger.debug("Call " + callId + " has been removed from current calls DB and added to completed calls DB");
+            logger.info("Call " + callId + " has been removed from current calls DB and added to completed calls DB");
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -191,6 +194,8 @@ public class ParseAndProcessCalls {
             }
             completedCallsDB.commit();
             callDB.commit();
+            callDB.close();
+            completedCallsDB.close();
             logger.info("All DB changes have been successfully committed and DB closed");
             return true;
         } catch (Exception e) {

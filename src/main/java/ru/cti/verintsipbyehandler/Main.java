@@ -24,8 +24,10 @@ public class Main {
     @Autowired
     private ParseAndProcessCalls parseAndProcessCalls;
     private static final Logger logger = LogManager.getRootLogger();
+    private int applicationClosingTimer;
 
-    public Main() {
+    public Main(int applicationClosingTimer) {
+        this.applicationClosingTimer = applicationClosingTimer * 1000;
     }
 
     public void setParseAndProcessCalls(ParseAndProcessCalls parseAndProcessCalls) {
@@ -42,7 +44,8 @@ public class Main {
             logger.error("An error with adding calls from RIS log path", e);
         }
         parseAndProcessCalls.processWhichCallsNeedToBeEnded();
-        Thread.currentThread().sleep(15000);
+        logger.info("Closing timer " + applicationClosingTimer + " ms has been started");
+        Thread.currentThread().sleep(applicationClosingTimer);
         parseAndProcessCalls.commitDbChangesAndCloseDb();
         logger.info("The application has been accomplished\n");
         System.exit(0);

@@ -24,7 +24,7 @@ public class Configuration {
 
     @Bean
     public Main main() {
-        return new Main();
+        return new Main(Integer.parseInt(env.getProperty("applicationClosingTimer")));
     }
 
     @Bean
@@ -32,7 +32,8 @@ public class Configuration {
         return new ParseAndProcessCalls(env.getProperty("regexp"),
                 env.getProperty("risLogsFolderPath"),
                 Integer.parseInt(env.getProperty("callTerminationTimeout")),
-                Integer.parseInt(env.getProperty("completedCallDeletionTimer")));
+                Integer.parseInt(env.getProperty("completedCallDeletionTimer")),
+                Integer.parseInt(env.getProperty("sipByeSenderPause")));
     }
 
     @Bean
