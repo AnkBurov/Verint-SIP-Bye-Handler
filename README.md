@@ -16,7 +16,9 @@ The application itself works by parsing log files for call-id strings and closin
 * Run created task and check /etc/application.log for any errors or exceptions.
 
 ## Release notes ##
-* 1.01
-** Added new configuration timers: sipByeSenderPause and applicationClosingTimer. Detailed description about each timer see in config.properties file. 
-** Fixed bug caused some performance slowdown on processing inbound responses
-* 1.00 Release.
+### 1.01 ###
+* Added new configuration timers: sipByeSenderPause and applicationClosingTimer. Detailed description about each timer see in config.properties file. 
+* Fixed bug caused some performance slowdown on processing inbound responses
+
+#### 1.00 ####
+* Release.
