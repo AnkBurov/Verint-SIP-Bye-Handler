@@ -7,6 +7,7 @@ import ru.cti.verintsipbyehandler.model.domainobjects.Call;
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CallDAO implements GenericDAO<Call, Integer> {
@@ -31,6 +32,10 @@ public class CallDAO implements GenericDAO<Call, Integer> {
     @Override
     public List<Call> getAll() {
         return jdbcTemplate.query("SELECT * FROM Calls;", new ItemMapper());
+    }
+
+    public List<Call> getAllActiveCalls() {
+        return jdbcTemplate.query("SELECT * FROM Calls WHERE isEnded = 0;", new ItemMapper());
     }
 
     @Override

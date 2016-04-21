@@ -6,6 +6,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+import ru.cti.verintsipbyehandler.controller.CallHandler;
 import ru.cti.verintsipbyehandler.controller.CallParser;
 import ru.cti.verintsipbyehandler.controller.dao.DAOFacade;
 import ru.cti.verintsipbyehandler.model.fabric.CallsFabric;
@@ -22,7 +23,7 @@ import java.util.TooManyListenersException;
  * Spring Java configuration file
  */
 @org.springframework.context.annotation.Configuration
-@PropertySources({ @PropertySource(value = "file:etc/config.properties")})
+@PropertySources({@PropertySource(value = "file:etc/config.properties")})
 public class Configuration {
     @Autowired
     Environment env;
@@ -73,5 +74,12 @@ public class Configuration {
     public CallParser callParser() {
         return new CallParser(env.getProperty("risLogsFolderPath"),
                 env.getProperty("regexp"));
+    }
+
+    @Bean
+    public CallHandler callHandler() {
+        return new CallHandler(Long.parseLong(env.getProperty("callTerminationTimeout")),
+                Long.parseLong(env.getProperty("completedCallDeletionTimer")),
+                Integer.parseInt(env.getProperty("sipByeSenderPause")));
     }
 }

@@ -13,7 +13,7 @@ public class CallsFabric extends DomainEntitiesFabric<Call> {
     }
 
     public Call create(String callId) {
-        return new Call(-1, callId, System.currentTimeMillis(), true);
+        return new Call(-1, callId, System.currentTimeMillis(), false);
     }
 
     public Call create(int id, String callId) {

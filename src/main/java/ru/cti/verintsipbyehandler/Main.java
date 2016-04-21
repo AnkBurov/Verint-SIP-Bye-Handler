@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import ru.cti.verintsipbyehandler.controller.CallHandler;
 import ru.cti.verintsipbyehandler.controller.CallParser;
 
 import java.io.File;
@@ -26,6 +27,8 @@ public class Main {
     private ParseAndProcessCalls parseAndProcessCalls;
     @Autowired
     private CallParser callParser;
+    @Autowired
+    private CallHandler callHandler;
     private static final Logger logger = LogManager.getRootLogger();
     private int applicationClosingTimer;
 
@@ -39,13 +42,15 @@ public class Main {
 
     public void start() throws Exception {
         Thread.currentThread().sleep(500);
-        logger.info("Application has been started");
+        //todo убрать
+        logger.info("\nApplication has been started");
         try {
             callParser.addCallsFromFiles();
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("An error with adding calls from RIS log path", e);
         }
+        callHandler.processWhichCallsNeedToBeEnded();
         /*try {
             parseAndProcessCalls.addCallsFromFiles();
         } catch (Exception e) {
