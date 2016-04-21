@@ -5,11 +5,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+import ru.cti.verintsipbyehandler.controller.CallParser;
+import ru.cti.verintsipbyehandler.controller.dao.DAOFacade;
+import ru.cti.verintsipbyehandler.model.fabric.CallsFabric;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ObjectInUseException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.TransportNotSupportedException;
+import javax.sql.DataSource;
 import java.net.UnknownHostException;
 import java.util.TooManyListenersException;
 
@@ -44,5 +49,29 @@ public class Configuration {
                 Integer.parseInt(env.getProperty("sip.srcPort")),
                 env.getProperty("sip.destinationAddress"),
                 env.getProperty("sipLibraryLogLevel"));
+    }
+
+    @Bean
+    public CallsFabric callsFabric() {
+        return new CallsFabric();
+    }
+
+    @Bean
+    public DataSource dataSource() {
+        SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
+        dataSource.setDriverClass(org.sqlite.JDBC.class);
+        dataSource.setUrl("jdbc:sqlite:db/sqlite.db");
+        return dataSource;
+    }
+
+    @Bean
+    public DAOFacade daoFacade() {
+        return new DAOFacade(dataSource());
+    }
+
+    @Bean
+    public CallParser callParser() {
+        return new CallParser(env.getProperty("risLogsFolderPath"),
+                env.getProperty("regexp"));
     }
 }
