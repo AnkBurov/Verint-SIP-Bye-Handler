@@ -1,4 +1,4 @@
-package ru.cti.verintsipbyehandler;
+package ru.cti.verintsipbyehandler.controller;
 
 import gov.nist.javax.sip.header.CallID;
 import org.apache.logging.log4j.LogManager;
@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * Class implements all SIP related logic.
  * Class has methods for sending requests and processing responses.
  * sendMessage method sends SIP Bye requests with different Call-ID headers
- * processMessage method receives SIP Responses and processes them by invoking removeClosedCall of parseAndProcessClass
+ * processMessage method receives SIP Responses and processes them by invoking closeClosedCall of parseAndProcessClass
  * Based on JAIN SIP library.
  *
  * @author Eugeny
@@ -43,7 +43,9 @@ public class SipLayer implements SipListener {
     private SipProvider sipProvider;
     private String sipDestinationAddress;
     @Autowired
-    ParseAndProcessCalls parseAndProcessCalls;
+    CallParser callParser;
+    @Autowired
+    CallHandler callHandler;
 
     /**
      * Here we initialize the SIP stack.
@@ -193,11 +195,11 @@ public class SipLayer implements SipListener {
 
     /**
      * This method is called by the SIP stack when a response arrives. Processes each SIP Response
-     * by invoking removeClosedCall of another class
+     * by invoking closeClosedCall of another class
      */
     public void processResponse(ResponseEvent evt) {
         Response response = evt.getResponse();
-        Pattern pattern = Pattern.compile(ParseAndProcessCalls.getRegexp());
+        Pattern pattern = Pattern.compile(callParser.getRegexp());
         Matcher matcher = pattern.matcher(response.getHeader(CallID.CALL_ID).toString());
         matcher.find();
         String matchedCallIdString = matcher.group();
@@ -215,7 +217,7 @@ public class SipLayer implements SipListener {
                     ". The SIP Response message is below " +
                     "\n" + response.toString());
         }
-        parseAndProcessCalls.removeClosedCall(matchedCallIdString);
+        callHandler.closeClosedCall(matchedCallIdString);
     }
 
     /**
