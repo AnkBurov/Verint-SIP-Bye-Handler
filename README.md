@@ -16,7 +16,13 @@ The application itself works by parsing log files for call-id strings and closin
 * Run created task and check /etc/application.log for any errors or exceptions.
 
 ## Release notes ##
-### 1.01 ###
+
+### 1.1 ###
+* Added SQLite database as a persistent database engine instead of NoSQL MapDB.
+* Reworked application architecture.
+* In case of any problems with DB, version 1.01 of this application can be used.
+
+#### 1.01 ####
 * Added new configuration timers: sipByeSenderPause and applicationClosingTimer. Detailed description about each timer see in config.properties file. 
 * Fixed bug caused some performance slowdown on processing inbound responses
 
