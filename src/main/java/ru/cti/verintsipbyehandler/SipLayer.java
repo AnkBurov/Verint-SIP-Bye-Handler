@@ -47,6 +47,8 @@ public class SipLayer implements SipListener {
     @Autowired
     ParseAndProcessCalls parseAndProcessCalls;
     @Autowired
+    CallParser callParser;
+    @Autowired
     CallHandler callHandler;
 
     /**
@@ -201,7 +203,7 @@ public class SipLayer implements SipListener {
      */
     public void processResponse(ResponseEvent evt) {
         Response response = evt.getResponse();
-        Pattern pattern = Pattern.compile(ParseAndProcessCalls.getRegexp());
+        Pattern pattern = Pattern.compile(callParser.getRegexp());
         Matcher matcher = pattern.matcher(response.getHeader(CallID.CALL_ID).toString());
         matcher.find();
         String matchedCallIdString = matcher.group();

@@ -25,6 +25,10 @@ public class CallParser {
         this.regexp = regexp;
     }
 
+    public String getRegexp() {
+        return regexp;
+    }
+
     public void addCallsFromFiles() throws Exception {
         daoFacade.getCallDAO().createTable();
         File dir = new File(risLogsFolderPath);
