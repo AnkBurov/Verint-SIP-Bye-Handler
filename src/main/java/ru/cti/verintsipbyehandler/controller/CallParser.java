@@ -5,21 +5,32 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.UncategorizedSQLException;
 import ru.cti.verintsipbyehandler.controller.dao.DAOFacade;
-import ru.cti.verintsipbyehandler.model.fabric.CallsFabric;
+import ru.cti.verintsipbyehandler.model.factory.CallsFactory;
 
 import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * This class parses .log files from specified directory and processes calls by adding Call-IDs in SQLite3 database
+ *
+ * @author Eugeny
+ */
 public class CallParser {
     private static final Logger logger = LogManager.getLogger(CallParser.class);
     @Autowired
     DAOFacade daoFacade;
     @Autowired
-    CallsFabric callsFabric;
+    CallsFactory callsFabric;
     private String risLogsFolderPath;
     private String regexp;
 
+    /**
+     * Constructor method
+     *
+     * @param regexp            used regular expression from config.properties
+     * @param risLogsFolderPath RIS log folder from config.properties (and next ones)
+     */
     public CallParser(String risLogsFolderPath, String regexp) {
         this.risLogsFolderPath = risLogsFolderPath;
         this.regexp = regexp;
@@ -29,8 +40,17 @@ public class CallParser {
         return regexp;
     }
 
-    public void addCallsFromFiles() throws Exception {
+    /**
+     * This method creates all needed tables
+     */
+    public void createTables() {
         daoFacade.getCallDAO().createTable();
+    }
+
+    /**
+     * This method parses and adds call-identifiers to call DB. Each call will only be added if it absents in calls DB.
+     */
+    public void addCallsFromFiles() throws Exception {
         File dir = new File(risLogsFolderPath);
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
@@ -57,16 +77,10 @@ public class CallParser {
                                 String regexFoundString = matcher.group();
                                 try {
                                     daoFacade.getCallDAO().create(callsFabric.create(regexFoundString));
-                                    logger.info("Call " + regexFoundString + " has been added to current calls DB");
+                                    logger.info("Call " + regexFoundString + " has been added to calls DB");
                                 } catch (UncategorizedSQLException e) {
-                                    // db already has this call
+                                    logger.trace("Call " + regexFoundString + " already added in the DB");
                                 }
-                                /*if (!completedCallsHashMap.containsKey(regexFoundString)) {
-                                    if (!callHashMap.containsKey(regexFoundString)) {
-                                        logger.info("Call " + regexFoundString + " has been added to current calls DB");
-                                    }
-                                    callHashMap.putIfAbsent(regexFoundString, System.currentTimeMillis());
-                                }*/
                             }
                         }
                     }

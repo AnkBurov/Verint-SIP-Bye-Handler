@@ -8,8 +8,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import ru.cti.verintsipbyehandler.controller.CallHandler;
 import ru.cti.verintsipbyehandler.controller.CallParser;
+import ru.cti.verintsipbyehandler.controller.Main;
 import ru.cti.verintsipbyehandler.controller.dao.DAOFacade;
-import ru.cti.verintsipbyehandler.model.fabric.CallsFabric;
+import ru.cti.verintsipbyehandler.controller.SipLayer;
+import ru.cti.verintsipbyehandler.model.factory.CallsFactory;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ObjectInUseException;
@@ -33,14 +35,6 @@ public class Configuration {
         return new Main(Integer.parseInt(env.getProperty("applicationClosingTimer")));
     }
 
-    @Bean
-    public ParseAndProcessCalls parseAndProcessCalls() throws Exception {
-        return new ParseAndProcessCalls(env.getProperty("regexp"),
-                env.getProperty("risLogsFolderPath"),
-                Integer.parseInt(env.getProperty("callTerminationTimeout")),
-                Integer.parseInt(env.getProperty("completedCallDeletionTimer")),
-                Integer.parseInt(env.getProperty("sipByeSenderPause")));
-    }
 
     @Bean
     public SipLayer sipLayer() throws InvalidArgumentException, PeerUnavailableException, UnknownHostException,
@@ -53,8 +47,8 @@ public class Configuration {
     }
 
     @Bean
-    public CallsFabric callsFabric() {
-        return new CallsFabric();
+    public CallsFactory callsFabric() {
+        return new CallsFactory();
     }
 
     @Bean

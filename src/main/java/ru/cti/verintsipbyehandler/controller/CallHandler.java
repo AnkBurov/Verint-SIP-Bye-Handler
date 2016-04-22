@@ -3,30 +3,46 @@ package ru.cti.verintsipbyehandler.controller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.cti.verintsipbyehandler.SipLayer;
 import ru.cti.verintsipbyehandler.controller.dao.DAOFacade;
 import ru.cti.verintsipbyehandler.model.domainobjects.Call;
-import ru.cti.verintsipbyehandler.model.fabric.CallsFabric;
+import ru.cti.verintsipbyehandler.model.factory.CallsFactory;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * This class invokes sendMessage (SIP Bye) method of SipLayer class to end each call when their time comes.
+ * "Their time" is managed by callTerminationTimeout attribute. See config.properties for more information.
+ * When application receives SIP Response for each SIP Bye request, special method inserts isEnded field as true
+ * Before normal exit from application, method removeOldCalls removes old calls call database.
+ * The attribute completedCallDeletionTimer used to decide whether to remove call or it's too early.
+ *
+ * @author Eugeny
+ */
 public class CallHandler {
     private static final Logger logger = LogManager.getLogger(CallHandler.class);
     @Autowired
     DAOFacade daoFacade;
     @Autowired
-    CallsFabric callsFabric;
+    CallsFactory callsFabric;
     @Autowired
     private SipLayer sipLayer;
     private long callTerminationTimeout;
     private long completedCallDeletionTimer;
     private int sipByeSenderPause;
 
+    /**
+     * Constructor method
+     *
+     * @param callTerminationTimeout      timeout before each call will be ended by sending SIP Bye request.
+     *                                    measures in ms in code.
+     * @param completedCallDeletionTimer: timeout before each call will be removed from completed calls DB
+     *                                    measures in ms in code;
+     * @param sipByeSenderPause           Number of MILLISECONDS between each outgoing SIP Bye message.
+     *                                    Delay needed for not overweighting remote SIP adapter
+     */
     public CallHandler(long callTerminationTimeout, long completedCallDeletionTimer, int sipByeSenderPause) {
         this.callTerminationTimeout = callTerminationTimeout * 60000;
         this.completedCallDeletionTimer = completedCallDeletionTimer * 86400000;
@@ -39,7 +55,7 @@ public class CallHandler {
      */
     public void processWhichCallsNeedToBeEnded() {
         logger.info("The set call termination timeout is " + callTerminationTimeout / 60000 + " minutes and " +
-                "completed calls deletion timeout is " + completedCallDeletionTimer / + 86400000 + " days");
+                "completed calls deletion timeout is " + completedCallDeletionTimer / +86400000 + " days");
         List<Call> calls = daoFacade.getCallDAO().getAllActiveCalls();
         for (Call call : calls) {
             if (System.currentTimeMillis() - call.getTimeOfCall() > callTerminationTimeout) {
@@ -68,13 +84,11 @@ public class CallHandler {
     }
 
     /**
-     * method removes call from current call DB and adds it to completed call DB
+     * method updates isEnded field in DB from false to true
      */
-    public boolean removeClosedCall(String callId) {
+    public boolean closeClosedCall(String callId) {
         try {
             daoFacade.getCallDAO().updateClosedCall(callId);
-            /*completedCallsHashMap.putIfAbsent(callId, System.currentTimeMillis());
-            callHashMap.remove(callId);*/
             logger.info("Call " + callId + " has been removed from current calls DB and added to completed calls DB");
             return true;
         } catch (Exception e) {
@@ -85,12 +99,11 @@ public class CallHandler {
     }
 
     /**
-     * method commitDbChangesAndCloseDb removes old calls from completed call database and commites changes
+     * method removeOldCalls removes old calls that older then specified completedCallDeletionTimer
      */
-    public boolean commitDbChangesAndCloseDb() {
+    public boolean removeOldCalls() {
         try {
             List<Call> calls = daoFacade.getCallDAO().getAllCompletedCalls();
-            // удаление старых записей в completed calls DB
             for (Call call : calls) {
                 if (System.currentTimeMillis() - call.getTimeOfCall() > completedCallDeletionTimer) {
                     long markedForRemovalCallAge = (System.currentTimeMillis() - call.getTimeOfCall()) / 86400000;
@@ -98,7 +111,7 @@ public class CallHandler {
                     daoFacade.getCallDAO().delete(call.getId());
                 }
             }
-            logger.info("All DB changes have been successfully committed and DB closed");
+            logger.info("All DB changes have been successfully done");
             return true;
         } catch (Exception e) {
             e.printStackTrace();

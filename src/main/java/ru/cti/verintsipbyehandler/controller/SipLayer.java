@@ -1,11 +1,9 @@
-package ru.cti.verintsipbyehandler;
+package ru.cti.verintsipbyehandler.controller;
 
 import gov.nist.javax.sip.header.CallID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.cti.verintsipbyehandler.controller.CallHandler;
-import ru.cti.verintsipbyehandler.controller.CallParser;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -29,7 +27,7 @@ import java.util.regex.Pattern;
  * Class implements all SIP related logic.
  * Class has methods for sending requests and processing responses.
  * sendMessage method sends SIP Bye requests with different Call-ID headers
- * processMessage method receives SIP Responses and processes them by invoking removeClosedCall of parseAndProcessClass
+ * processMessage method receives SIP Responses and processes them by invoking closeClosedCall of parseAndProcessClass
  * Based on JAIN SIP library.
  *
  * @author Eugeny
@@ -44,8 +42,6 @@ public class SipLayer implements SipListener {
     private MessageFactory messageFactory;
     private SipProvider sipProvider;
     private String sipDestinationAddress;
-    @Autowired
-    ParseAndProcessCalls parseAndProcessCalls;
     @Autowired
     CallParser callParser;
     @Autowired
@@ -199,7 +195,7 @@ public class SipLayer implements SipListener {
 
     /**
      * This method is called by the SIP stack when a response arrives. Processes each SIP Response
-     * by invoking removeClosedCall of another class
+     * by invoking closeClosedCall of another class
      */
     public void processResponse(ResponseEvent evt) {
         Response response = evt.getResponse();
@@ -221,7 +217,7 @@ public class SipLayer implements SipListener {
                     ". The SIP Response message is below " +
                     "\n" + response.toString());
         }
-        callHandler.removeClosedCall(matchedCallIdString);
+        callHandler.closeClosedCall(matchedCallIdString);
     }
 
     /**

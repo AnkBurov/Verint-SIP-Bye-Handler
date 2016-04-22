@@ -1,15 +1,10 @@
-package ru.cti.verintsipbyehandler;
+package ru.cti.verintsipbyehandler.controller;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.cti.verintsipbyehandler.controller.CallHandler;
-import ru.cti.verintsipbyehandler.controller.CallParser;
-
-import java.io.File;
 
 /**
  * Verint SIP Bye Handler v1.0
@@ -24,8 +19,6 @@ import java.io.File;
  */
 public class Main {
     @Autowired
-    private ParseAndProcessCalls parseAndProcessCalls;
-    @Autowired
     private CallParser callParser;
     @Autowired
     private CallHandler callHandler;
@@ -36,13 +29,10 @@ public class Main {
         this.applicationClosingTimer = applicationClosingTimer * 1000;
     }
 
-    public void setParseAndProcessCalls(ParseAndProcessCalls parseAndProcessCalls) {
-        this.parseAndProcessCalls = parseAndProcessCalls;
-    }
-
     public void start() throws Exception {
         Thread.currentThread().sleep(500);
         logger.info("Application has been started");
+        callParser.createTables();
         try {
             callParser.addCallsFromFiles();
         } catch (Exception e) {
@@ -52,7 +42,7 @@ public class Main {
         callHandler.processWhichCallsNeedToBeEnded();
         logger.info("Closing timer " + applicationClosingTimer + " ms has been started");
         Thread.currentThread().sleep(applicationClosingTimer);
-        callHandler.commitDbChangesAndCloseDb();
+        callHandler.removeOldCalls();
         logger.info("The application has been accomplished\n");
         System.exit(0);
     }

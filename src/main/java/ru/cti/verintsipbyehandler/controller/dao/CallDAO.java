@@ -61,12 +61,11 @@ public class CallDAO implements GenericDAO<Call, Long> {
     public int delete(Long key) {
         return jdbcTemplate.update("delete FROM Calls where id = ?;", key);
     }
-}
 
-//todo сделать внутренним класом
-final class ItemMapper implements RowMapper<Call> {
-    public Call mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Call entity = new Call(rs.getLong(1), rs.getString(2), rs.getLong(3), rs.getBoolean(4));
-        return entity;
+    private static class ItemMapper implements RowMapper<Call> {
+        public Call mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Call entity = new Call(rs.getLong(1), rs.getString(2), rs.getLong(3), rs.getBoolean(4));
+            return entity;
+        }
     }
 }

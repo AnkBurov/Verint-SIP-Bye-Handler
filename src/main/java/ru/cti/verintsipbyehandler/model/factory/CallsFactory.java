@@ -1,10 +1,10 @@
-package ru.cti.verintsipbyehandler.model.fabric;
+package ru.cti.verintsipbyehandler.model.factory;
 
 import ru.cti.verintsipbyehandler.model.domainobjects.Call;
 
-public class CallsFabric extends DomainEntitiesFabric<Call> {
+public class CallsFactory extends DomainEntitiesFactory<Call> {
 
-    public CallsFabric() {
+    public CallsFactory() {
     }
 
     @Override
