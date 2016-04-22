@@ -1,12 +1,12 @@
 package ru.cti.verintsipbyehandler.model.domainobjects;
 
 public class Call extends DomainEntity {
-    private int id;
+    private long id;
     private String callId;
     private long timeOfCall;
     private boolean isEnded; // возможно не нужно
 
-    public Call(int id, String callId, long timeOfCall, boolean isEnded) {
+    public Call(long id, String callId, long timeOfCall, boolean isEnded) {
         this.id = id;
         this.callId = callId;
         this.timeOfCall = timeOfCall;
@@ -19,7 +19,7 @@ public class Call extends DomainEntity {
         this.isEnded = isEnded;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

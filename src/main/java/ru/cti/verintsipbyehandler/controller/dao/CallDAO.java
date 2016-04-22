@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CallDAO implements GenericDAO<Call, Integer> {
+public class CallDAO implements GenericDAO<Call, Long> {
     JdbcTemplate jdbcTemplate;
 
     public CallDAO(DataSource dataSource) {
@@ -43,7 +43,7 @@ public class CallDAO implements GenericDAO<Call, Integer> {
     }
 
     @Override
-    public Call read(Integer key) {
+    public Call read(Long key) {
         return jdbcTemplate.queryForObject("SELECT * FROM Calls where id = ?;", new ItemMapper(), key);
     }
 
@@ -58,7 +58,7 @@ public class CallDAO implements GenericDAO<Call, Integer> {
     }
 
     @Override
-    public int delete(Integer key) {
+    public int delete(Long key) {
         return jdbcTemplate.update("delete FROM Calls where id = ?;", key);
     }
 }
@@ -66,7 +66,7 @@ public class CallDAO implements GenericDAO<Call, Integer> {
 //todo сделать внутренним класом
 final class ItemMapper implements RowMapper<Call> {
     public Call mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Call entity = new Call(rs.getInt(1), rs.getString(2), rs.getLong(3), rs.getBoolean(4));
+        Call entity = new Call(rs.getLong(1), rs.getString(2), rs.getLong(3), rs.getBoolean(4));
         return entity;
     }
 }
