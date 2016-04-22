@@ -38,6 +38,10 @@ public class CallDAO implements GenericDAO<Call, Integer> {
         return jdbcTemplate.query("SELECT * FROM Calls WHERE isEnded = 0;", new ItemMapper());
     }
 
+    public List<Call> getAllCompletedCalls() {
+        return jdbcTemplate.query("SELECT * FROM Calls WHERE isEnded = 1;", new ItemMapper());
+    }
+
     @Override
     public Call read(Integer key) {
         return jdbcTemplate.queryForObject("SELECT * FROM Calls where id = ?;", new ItemMapper(), key);
@@ -47,6 +51,10 @@ public class CallDAO implements GenericDAO<Call, Integer> {
     public int update(Call entity) {
         return jdbcTemplate.update("UPDATE Calls SET callId = ?, timeOfCall = ?, isEnded = ? where id = ?;",
                 entity.getCallId(), entity.getTimeOfCall(), entity.isEnded(), entity.getId());
+    }
+
+    public int updateClosedCall(String callId) {
+        return jdbcTemplate.update("UPDATE Calls SET isEnded = 1 WHERE callId = ?;", callId);
     }
 
     @Override

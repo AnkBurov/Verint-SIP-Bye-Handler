@@ -11,6 +11,7 @@ import ru.cti.verintsipbyehandler.model.fabric.CallsFabric;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +64,46 @@ public class CallHandler {
                     logger.catching(e);
                 }
             }
+        }
+    }
+
+    /**
+     * method removes call from current call DB and adds it to completed call DB
+     */
+    public boolean removeClosedCall(String callId) {
+        try {
+            daoFacade.getCallDAO().updateClosedCall(callId);
+            /*completedCallsHashMap.putIfAbsent(callId, System.currentTimeMillis());
+            callHashMap.remove(callId);*/
+            logger.info("Call " + callId + " has been removed from current calls DB and added to completed calls DB");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.catching(e);
+            return false;
+        }
+    }
+
+    /**
+     * method commitDbChangesAndCloseDb removes old calls from completed call database and commites changes
+     */
+    public boolean commitDbChangesAndCloseDb() {
+        try {
+            List<Call> calls = daoFacade.getCallDAO().getAllCompletedCalls();
+            // удаление старых записей в completed calls DB
+            for (Call call : calls) {
+                if (System.currentTimeMillis() - call.getTimeOfCall() > completedCallDeletionTimer) {
+                    long markedForRemovalCallAge = (System.currentTimeMillis() - call.getTimeOfCall()) / 86400000;
+                    logger.debug("Call " + call.getCallId() + " with age " + markedForRemovalCallAge + " marked for deletion");
+                    daoFacade.getCallDAO().delete(call.getId());
+                }
+            }
+            logger.info("All DB changes have been successfully committed and DB closed");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.catching(e);
+            return false;
         }
     }
 }

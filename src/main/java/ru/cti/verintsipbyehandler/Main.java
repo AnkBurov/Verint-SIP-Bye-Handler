@@ -42,8 +42,7 @@ public class Main {
 
     public void start() throws Exception {
         Thread.currentThread().sleep(500);
-        //todo убрать
-        logger.info("\nApplication has been started");
+        logger.info("Application has been started");
         try {
             callParser.addCallsFromFiles();
         } catch (Exception e) {
@@ -51,17 +50,10 @@ public class Main {
             logger.error("An error with adding calls from RIS log path", e);
         }
         callHandler.processWhichCallsNeedToBeEnded();
-        /*try {
-            parseAndProcessCalls.addCallsFromFiles();
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("An error with adding calls from RIS log path", e);
-        }
-        parseAndProcessCalls.processWhichCallsNeedToBeEnded();
         logger.info("Closing timer " + applicationClosingTimer + " ms has been started");
         Thread.currentThread().sleep(applicationClosingTimer);
-        parseAndProcessCalls.commitDbChangesAndCloseDb();
-        logger.info("The application has been accomplished\n"); */
+        callHandler.commitDbChangesAndCloseDb();
+        logger.info("The application has been accomplished\n");
         System.exit(0);
     }
 

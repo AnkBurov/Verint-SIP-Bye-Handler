@@ -4,6 +4,8 @@ import gov.nist.javax.sip.header.CallID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.cti.verintsipbyehandler.controller.CallHandler;
+import ru.cti.verintsipbyehandler.controller.CallParser;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -44,6 +46,8 @@ public class SipLayer implements SipListener {
     private String sipDestinationAddress;
     @Autowired
     ParseAndProcessCalls parseAndProcessCalls;
+    @Autowired
+    CallHandler callHandler;
 
     /**
      * Here we initialize the SIP stack.
@@ -215,7 +219,7 @@ public class SipLayer implements SipListener {
                     ". The SIP Response message is below " +
                     "\n" + response.toString());
         }
-        parseAndProcessCalls.removeClosedCall(matchedCallIdString);
+        callHandler.removeClosedCall(matchedCallIdString);
     }
 
     /**
